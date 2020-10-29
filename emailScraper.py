@@ -13,8 +13,7 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 """Start of Main Program"""
 
 # path = input("Please enter a URL\n")
-urlList = ["http://www.bgibson.com/Company/Staff-Directory","https://www.cl.cam.ac.uk/~jac22/", "https://www.cl.cam.ac.uk/~bjc63/", "https://www.cl.cam.ac.uk/~jac22/", "https://www.cl.cam.ac.uk/~ah793/", "https://www.cl.cam.ac.uk/~ad260/", "https://sites.google.com/view/jinghan/contact", "http://miguelballesteros.com/"] 
-driver.get("https://www.cl.cam.ac.uk/~ah793/")
+urlList = ["https://www.boisestate.edu/coen-cs/people/faculty","http://www.bgibson.com/Company/Staff-Directory","https://www.cl.cam.ac.uk/~jac22/", "https://www.cl.cam.ac.uk/~bjc63/", "https://www.cl.cam.ac.uk/~jac22/", "https://www.cl.cam.ac.uk/~ah793/", "https://www.cl.cam.ac.uk/~ad260/", "https://sites.google.com/view/jinghan/contact"] 
 
 def BSULayout():
     """ Boise State emails"""
@@ -63,6 +62,7 @@ def bGibsonLayout():
 # /html/body/div[4]/div/div[3]/div/p[1]
 # /html/body/div[4]/div/div[3]/div/p[1]
 # /html/body/pre/a[10]
+# /html/body/div[1]/div/div[2]/div[2]/div[1]/section[2]/div[2]/div/div/div/div/div/div/div/div/p
 
 def clCamLayout():
     i = 1
@@ -79,29 +79,49 @@ def clCamLayout():
                 email = driver.find_element_by_xpath("/html/body/pre")
                 emails.append(email.text)
             except :
-                pass
+                try:
+                    email = driver.find_element_by_xpath("/html/body/div[1]/div/div[2]/div[2]/div[1]/section[2]/div[2]/div/div/div/div/div/div/div/div/p")
+                    emails.append(email.text)
+                except:
+                    pass
     return emails
 
 
 def cleanEmail(email):
+    """This method cleans emails based on some common format issues"""
     email = email.replace("E-mail: ","")
+    email = email.replace("Email: ", "")
     email = email.replace("Cal: agenda + bio + family + week + pix + office hours\nPPP: papers + professments + projects + blog", "")
     email= email.replace("+"," ")
     email = email.replace(" do NOT post - I may not pick it up for months", "")
     email = email.replace("Sober October 2020 for Macmillan Cancer Support", "")
     email = email.replace("\n","")
-    email = email.replace("Email", "")
+    email = email.replace("Email", "")   
+    email = email.replace("(at)", "@")
     email = email.replace(" [at] ", "@")
     return email
 
+"""User Input is taken and email list is created"""
+url = input("Please enter a URL:\n")
+driver.get(url)
 
-emails = clCamLayout()
-""" Print out all scraped emails"""
+if "http://www.bgibson.com" in url:
+    emails = bGibsonLayout()
+elif  "https://www.cl.cam.ac.uk" in url:
+    emails = clCamLayout()
+elif "https://www.boisestate.edu" in url:
+    emails = BSULayout()
+elif "https://sites.google.com" in url:
+    emails = clCamLayout()
+else:
+    emails = bGibsonLayout()
+    emails.append(clCamLayout())
+    emails.append(BSULayout())
 i = 1
+
+""" Print out all scraped emails"""
 for email in emails:
     if len(email) > 2:   
         email = cleanEmail(email)    
         print(str(i) + ". " + email)
         i+=1
-
-
